@@ -48,4 +48,26 @@ class HistoryViewModel(private val repository: RecordRepository) : ViewModel() {
 
         return markdownBuilder.toString()
     }
+    
+    // For testing export functionality
+    fun testExport(): String {
+        val testRecords = listOf(
+            Record(
+                id = 1,
+                timestamp = Date(),
+                efficiency = 4,
+                mood = "高效",
+                content = "完成了项目 A 的需求文档初稿。"
+            ),
+            Record(
+                id = 2,
+                timestamp = Date(System.currentTimeMillis() + 30 * 60 * 1000),
+                efficiency = 3,
+                mood = null,
+                content = "参加了团队的每日站会，讨论了一些问题。"
+            )
+        )
+        
+        return exportToMarkdown(testRecords)
+    }
 }
