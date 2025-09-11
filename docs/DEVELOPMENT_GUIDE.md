@@ -10,6 +10,32 @@
 4. 选择项目根目录（包含`build.gradle.kts`和`settings.gradle.kts`文件的目录），然后点击"Open"
 5. 等待Android Studio完成项目同步过程，这可能需要几分钟时间来下载Gradle和项目依赖
 
+## 解决常见的构建问题
+
+### Java版本兼容性问题
+
+如果遇到类似以下错误：
+```
+Your build is currently configured to use incompatible Java X.X.X and Gradle X.X
+```
+
+这是因为使用的Java版本与Gradle版本不兼容。项目已配置为使用Gradle 8.5，它支持Java 19及以下版本。
+
+解决方法：
+1. 在Android Studio中，选择"File" > "Project Structure"
+2. 在"SDK Location"选项卡中，检查"Gradle Settings"
+3. 确保"Gradle JDK"设置为Java 17或更低版本
+4. 点击"OK"并重新同步项目
+
+### 清理Gradle缓存
+
+如果项目同步失败，可以尝试清理Gradle缓存：
+
+1. 关闭Android Studio
+2. 删除项目目录下的`.gradle`文件夹：`rm -rf .gradle`
+3. 删除用户目录下的Gradle缓存：`rm -rf ~/.gradle/caches`
+4. 重新打开Android Studio并同步项目
+
 ## 项目结构说明
 
 ```
@@ -27,6 +53,7 @@
 ├── gradle/                  # Gradle包装器配置
 ├── gradlew                  # Gradle包装器脚本（Unix/Linux/macOS）
 ├── gradlew.bat              # Gradle包装器脚本（Windows）
+├── gradle.properties        # Gradle配置属性
 └── README.md                # 项目说明文档
 ```
 
@@ -36,9 +63,11 @@
 
 ```
 # 在Unix/Linux/macOS上：
+./gradlew clean
 ./gradlew build
 
 # 在Windows上：
+gradlew.bat clean
 gradlew.bat build
 ```
 
