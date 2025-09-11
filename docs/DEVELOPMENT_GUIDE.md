@@ -8,7 +8,7 @@
 2. 选择"Open an existing Android Studio project"选项
 3. 在文件选择对话框中，导航到Note30项目的根目录
 4. 选择项目根目录（包含`build.gradle.kts`和`settings.gradle.kts`文件的目录），然后点击"Open"
-5. 等待Android Studio完成项目同步过程，这可能需要几分钟时间来下载依赖项
+5. 等待Android Studio完成项目同步过程，这可能需要几分钟时间来下载Gradle和项目依赖
 
 ## 项目结构说明
 
