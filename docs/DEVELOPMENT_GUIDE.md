@@ -61,6 +61,16 @@ error: resource attr/colorPrimaryVariant not found.
 
 这是因为主题文件中使用了不存在的Material Design属性。项目现在已经修复了主题文件，使用了正确的属性。
 
+### Drawable资源中的主题属性错误
+
+如果遇到类似以下错误：
+```
+Android resource linking failed
+error: resource attr/colorOnPrimary not found.
+```
+
+这是因为drawable资源文件中使用了不存在的主题属性。项目现在已经修复了`ic_notification.xml`文件，使用了固定的顏色值而不是主题属性。
+
 ### 清理Gradle缓存
 
 如果项目同步失败，可以尝试清理Gradle缓存：
