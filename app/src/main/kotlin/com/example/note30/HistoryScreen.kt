@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ViewList
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,7 +26,6 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.window.Dialog
-import androidx.compose.material.icons.filled.Info
 
 @Composable
 fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = viewModel()) {

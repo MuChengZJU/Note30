@@ -20,6 +20,7 @@ class ReminderWorker(
 
     companion object {
         const val FOLLOW_UP_TAG_KEY = "follow_up_tag"
+        const val WORK_NAME = "note30_reminder_work"
     }
 
     override suspend fun doWork(): Result {
