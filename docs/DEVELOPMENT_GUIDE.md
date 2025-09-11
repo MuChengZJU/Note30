@@ -83,6 +83,17 @@ Unknown Kotlin JVM target: 21
 解决方法：
 1. 确保`app/build.gradle.kts`文件中的`kotlinOptions.jvmTarget`设置为受支持的版本（如"1.8"）
 2. 确保`gradle.properties`文件中的Java版本设置正确
+3. 如果问题仍然存在，尝试在Android Studio中选择"File" > "Invalidate Caches and Restart"
+
+### KAPT编译错误
+
+如果遇到KAPT相关的编译错误，可以尝试以下解决方法：
+1. 在`gradle.properties`文件中添加以下行：
+   ```
+   kapt.incremental.apt=false
+   kapt.use.worker.api=false
+   ```
+2. 在Android Studio中选择"File" > "Invalidate Caches and Restart"
 
 ### 清理Gradle缓存
 
