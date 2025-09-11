@@ -41,6 +41,16 @@ SDK processing. This version only understands SDK XML versions up to 3 but an SD
 2. 更新Android SDK命令行工具到最新版本
 3. 在Android Studio中，选择"Tools" > "SDK Manager"，确保所有组件都是最新版本
 
+### 缺少AndroidManifest.xml文件
+
+如果遇到类似以下错误：
+```
+A problem was found with the configuration of task ':app:processDebugMainManifest' (type 'ProcessApplicationManifest').
+  - In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.ProcessApplicationManifest' property 'mainManifest' specifies file '.../AndroidManifest.xml' which doesn't exist.
+```
+
+这是因为缺少`AndroidManifest.xml`文件。项目现在已经包含了这个文件，确保它位于`app/src/main/`目录下。
+
 ### 清理Gradle缓存
 
 如果项目同步失败，可以尝试清理Gradle缓存：
@@ -60,7 +70,12 @@ SDK processing. This version only understands SDK XML versions up to 3 but an SD
 │       └── main/            # 主源代码集
 │           ├── kotlin/      # Kotlin源代码
 │           │   └── com/example/note30/  # 包结构
-│           └── res/         # 资源文件
+│           ├── res/         # 资源文件
+│           │   ├── drawable/ # 图标和图片资源
+│           │   ├── mipmap/   # 启动图标
+│           │   ├── values/   # 字符串、颜色、主题等资源
+│           │   └── xml/      # 其他XML配置文件
+│           └── AndroidManifest.xml # 应用清单文件
 ├── docs/                    # 项目文档
 ├── build.gradle.kts         # 项目级构建配置
 ├── settings.gradle.kts      # 项目设置
