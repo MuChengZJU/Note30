@@ -8,24 +8,24 @@ import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         val recordRepository = ServiceLocator.provideRecordRepository(application)
-        val recordViewModel = ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(application))[RecordViewModel::class.java].apply {
-            // Initialize with repository
-        }
+        val recordViewModel = RecordViewModel(recordRepository)
+        val historyViewModel = HistoryViewModel(recordRepository)
         
         setContent {
-            Note30App(recordViewModel, recordRepository)
+            Note30App(recordViewModel, historyViewModel)
         }
     }
 }
 
 @Composable
-fun Note30App(recordViewModel: RecordViewModel, recordRepository: RecordRepository) {
+fun Note30App(recordViewModel: RecordViewModel, historyViewModel: HistoryViewModel) {
     val navController = rememberNavController()
     var currentScreen by remember { mutableStateOf(Screen.Record) }
 
@@ -60,8 +60,8 @@ fun Note30App(recordViewModel: RecordViewModel, recordRepository: RecordReposito
         }
     ) { innerPadding ->
         NavHost(navController = navController, startDestination = "record", modifier = Modifier.padding(innerPadding)) {
-            composable("record") { RecordScreen(navController) }
-            composable("history") { HistoryScreen(navController) }
+            composable("record") { RecordScreen(navController, recordViewModel) }
+            composable("history") { HistoryScreen(navController, historyViewModel) }
         }
     }
 }

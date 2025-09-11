@@ -7,9 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun RecordScreen(navController: NavController) {
+fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
     var text by remember { mutableStateOf("") }
     var efficiency by remember { mutableStateOf(3) } // Default to 3
     var mood by remember { mutableStateOf<String?>(null) }
@@ -91,7 +93,11 @@ fun RecordScreen(navController: NavController) {
         // Save Button
         Button(
             onClick = {
-                // Logic to save record will be connected later
+                viewModel.saveRecord(text, efficiency, mood)
+                // Reset form after saving
+                text = ""
+                efficiency = 3
+                mood = null
             },
             modifier = Modifier.align(Alignment.End)
         ) {
