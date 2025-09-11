@@ -24,7 +24,22 @@
 ├── docs/                    # 项目文档
 ├── build.gradle.kts         # 项目级构建配置
 ├── settings.gradle.kts      # 项目设置
+├── gradle/                  # Gradle包装器配置
+├── gradlew                  # Gradle包装器脚本（Unix/Linux/macOS）
+├── gradlew.bat              # Gradle包装器脚本（Windows）
 └── README.md                # 项目说明文档
+```
+
+## 初始化项目
+
+首次打开项目时，Android Studio会自动下载Gradle和项目依赖。如果遇到任何问题，可以在项目根目录运行以下命令：
+
+```
+# 在Unix/Linux/macOS上：
+./gradlew build
+
+# 在Windows上：
+gradlew.bat build
 ```
 
 ## 运行和调试
