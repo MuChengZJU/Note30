@@ -27,6 +27,20 @@ Your build is currently configured to use incompatible Java X.X.X and Gradle X.X
 3. 确保"Gradle JDK"设置为Java 17或更低版本
 4. 点击"OK"并重新同步项目
 
+### SDK XML版本警告
+
+如果遇到类似以下警告：
+```
+SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered.
+```
+
+这是由于Android Studio和命令行工具版本不匹配导致的。这个警告通常不会影响项目的构建和运行。
+
+解决方法：
+1. 更新Android Studio到最新版本
+2. 更新Android SDK命令行工具到最新版本
+3. 在Android Studio中，选择"Tools" > "SDK Manager"，确保所有组件都是最新版本
+
 ### 清理Gradle缓存
 
 如果项目同步失败，可以尝试清理Gradle缓存：
