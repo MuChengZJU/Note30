@@ -71,6 +71,19 @@ error: resource attr/colorOnPrimary not found.
 
 这是因为drawable资源文件中使用了不存在的主题属性。项目现在已经修复了`ic_notification.xml`文件，使用了固定的顏色值而不是主题属性。
 
+### Kotlin JVM目标版本错误
+
+如果遇到类似以下错误：
+```
+Unknown Kotlin JVM target: 21
+```
+
+这是因为Kotlin不支持JVM目标版本21。项目现在已经将JVM目标版本设置为1.8，这是受支持的版本。
+
+解决方法：
+1. 确保`app/build.gradle.kts`文件中的`kotlinOptions.jvmTarget`设置为受支持的版本（如"1.8"）
+2. 确保`gradle.properties`文件中的Java版本设置正确
+
 ### 清理Gradle缓存
 
 如果项目同步失败，可以尝试清理Gradle缓存：
