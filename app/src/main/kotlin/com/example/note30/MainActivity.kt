@@ -1,5 +1,6 @@
 package com.example.note30
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.remember
+import androidx.work.WorkManager
+import android.app.Application
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +27,22 @@ class MainActivity : ComponentActivity() {
         // Build Repository from Room
         val db = AppDatabase.getDatabase(applicationContext)
         val repository = RecordRepository(db.recordDao())
-        setContent { Note30App(repository) }
+        
+        cancelFollowUpWorkIfNeeded(intent)
+
+        setContent { Note30App(this, repository) }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent) // Update the activity's intent
+        cancelFollowUpWorkIfNeeded(intent)
+    }
+
+    private fun cancelFollowUpWorkIfNeeded(intent: Intent?) {
+        intent?.getStringExtra(ReminderWorker.FOLLOW_UP_TAG_KEY)?.let { tag ->
+            WorkManager.getInstance(applicationContext).cancelAllWorkByTag(tag)
+        }
     }
 }
 
@@ -30,10 +52,14 @@ private enum class Dest(val route: String, val label: String) {
 }
 
 @Composable
-fun Note30App(repository: RecordRepository) {
+fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
     val navController = rememberNavController()
     val items = listOf(Dest.Record, Dest.History)
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+
     Scaffold(
+        scaffoldState = scaffoldState,
         bottomBar = {
             BottomNavigation {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -61,7 +87,18 @@ fun Note30App(repository: RecordRepository) {
             modifier = androidx.compose.ui.Modifier.padding(paddingValues)
         ) {
             composable(Dest.Record.route) {
-                val vm = remember { RecordViewModel(repository) }
+                val vm: RecordViewModel = viewModel(
+                    factory = RecordViewModelFactory(activity.application, repository)
+                )
+                
+                LaunchedEffect(vm) {
+                    vm.recordSaved.collect {
+                        scope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar("记录已保存")
+                        }
+                    }
+                }
+
                 RecordScreen(navController = navController, viewModel = vm)
             }
             composable(Dest.History.route) {
@@ -69,5 +106,17 @@ fun Note30App(repository: RecordRepository) {
                 HistoryScreen(navController = navController, viewModel = vm)
             }
         }
+    }
+}
+class RecordViewModelFactory(
+    private val application: Application,
+    private val repository: RecordRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(RecordViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return RecordViewModel(application, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
