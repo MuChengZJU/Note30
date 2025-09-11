@@ -87,3 +87,6 @@ trace/
 
 # Windows
 Thumbs.db
+
+.gradle/
+.idea/  

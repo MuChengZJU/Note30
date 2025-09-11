@@ -8,20 +8,20 @@
 
 **目标**: 搭建一个可运行的、结构清晰的空项目，并定义好数据的存储方式。
 
--   [ ] **任务 1.1: 初始化安卓项目**
+- [x] **任务 1.1: 初始化安卓项目**
     -   [ ] 创建一个新的 Android Studio 项目。
     -   [ ] 配置项目，使用 Kotlin 语言和 Jetpack Compose UI 框架。
     -   [ ] 设置 App 的名称、图标和主题颜色。
 
--   [ ] **任务 1.2: 引入核心依赖**
+- [x] **任务 1.2: 引入核心依赖**
     -   [ ] 在 `build.gradle.kts` 文件中，添加 `ViewModel`, `Room`, `Navigation Compose`, 和 `Kotlin Coroutines` 的依赖。
 
--   [ ] **任务 1.3: 定义数据模型 (Room)**
+- [x] **任务 1.3: 定义数据模型 (Room)**
     -   [ ] 创建 `Record` 数据实体 (Entity)，包含 `id`, `timestamp`, `efficiency`, `mood`, `content` 等字段。
     -   [ ] 创建 `RecordDao` 数据访问对象 (DAO) 接口，定义增、查等数据库操作。
     -   [ ] 创建 `AppDatabase` 数据库抽象类，完成 Room 数据库的初始化配置。
 
--   [ ] **任务 1.4: 创建基础 UI 占位符**
+- [x] **任务 1.4: 创建基础 UI 占位符**
     -   [ ] 创建两个空的 Composable 屏幕：`RecordScreen` 和 `HistoryScreen`。
     -   [ ] 配置 `Navigation Compose`，实现这两个屏幕之间的基础跳转。
     -   [ ] 搭建主界面的底部 Tab 导航栏。

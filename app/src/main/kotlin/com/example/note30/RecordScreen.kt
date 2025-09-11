@@ -7,9 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import java.text.SimpleDateFormat
-import java.util.*
+import androidx.compose.material.ExperimentalMaterialApi
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
     var text by remember { mutableStateOf("") }
@@ -42,27 +42,15 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Mood Selection (Simple dropdown for now)
+        // Mood Selection using standard DropdownMenu
         var expanded by remember { mutableStateOf(false) }
         val moods = listOf("平静", "高效", "疲惫", "分心", "愉悦", "焦虑")
         Text("情绪标签:")
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                readOnly = true,
-                value = mood ?: "选择情绪",
-                onValueChange = { },
-                label = { Text("情绪") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = expanded
-                    )
-                },
-                modifier = Modifier.menuAnchor()
-            )
-            ExposedDropdownMenu(
+        Box {
+            Button(onClick = { expanded = true }) {
+                Text(mood ?: "选择情绪")
+            }
+            DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
@@ -76,7 +64,6 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                         Text(text = item)
                     }
                 }
-                // Option to clear selection
                 DropdownMenuItem(
                     onClick = {
                         mood = null

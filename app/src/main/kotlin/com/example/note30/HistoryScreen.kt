@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = viewModel()) {
