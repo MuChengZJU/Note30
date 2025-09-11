@@ -12,7 +12,8 @@ Note30 是一款极简的安卓应用，旨在通过每 30 分钟一次的周期
 ## 文档
 
 - **产品需求文档 (PRD)**: [./docs/PRD.md](./docs/PRD.md)
-- **技术规格说明 (待定)**: [./docs/TECH_SPEC.md](./docs/TECH_SPEC.md)
+- **技术规格说明**: [./docs/TECH_SPEC.md](./docs/TECH_SPEC.md)
+- **开发计划**: [./docs/DEVELOPMENT_PLAN.md](./docs/DEVELOPMENT_PLAN.md)
 - **更新日志**: [./docs/CHANGELOG.md](./docs/CHANGELOG.md)
 
 ## 项目结构
@@ -22,6 +23,7 @@ Note30 是一款极简的安卓应用，旨在通过每 30 分钟一次的周期
 ├── docs/
 │   ├── PRD.md
 │   ├── TECH_SPEC.md
+│   ├── DEVELOPMENT_PLAN.md
 │   └── CHANGELOG.md
 ├── src/
 │   └── (源代码)
