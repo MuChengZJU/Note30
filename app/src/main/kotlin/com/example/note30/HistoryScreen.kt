@@ -1,5 +1,6 @@
 package com.example.note30
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -7,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -139,13 +141,13 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
                 }
             )
         },
-        backgroundColor = Color(0xFFF5F5F5)
+        backgroundColor = Color(0xFFF8F9FF)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(20.dp),
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -186,60 +188,88 @@ fun TimelineView(records: List<Record>) {
         }
         return
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(records) { record ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = 6.dp,
-                shape = RoundedCornerShape(12.dp)
+                elevation = 12.dp,
+                shape = RoundedCornerShape(24.dp),
+                backgroundColor = Color.White
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(record.timestamp),
-                            style = MaterialTheme.typography.subtitle1.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF6200EA)
-                            )
-                        )
-                        Surface(
-                            color = when (record.efficiency) {
-                                1, 2 -> Color(0xFFFFCDD2)
-                                3 -> Color(0xFFFFF9C4)
-                                4, 5 -> Color(0xFFC8E6C9)
-                                else -> Color.Gray
-                            },
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "效率: ${record.efficiency}",
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Medium),
-                                color = when (record.efficiency) {
-                                    1, 2 -> Color(0xFFD32F2F)
-                                    3 -> Color(0xFFF57C00)
-                                    4, 5 -> Color(0xFF388E3C)
-                                    else -> Color.Black
-                                }
+                                "🕰️",
+                                style = MaterialTheme.typography.h6
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(record.timestamp),
+                                style = MaterialTheme.typography.h6.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF667EEA)
+                                )
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    brush = Brush.radialGradient(
+                                        colors = when (record.efficiency) {
+                                            1, 2 -> listOf(Color(0xFFFF6B6B), Color(0xFFFF8E8E))
+                                            3 -> listOf(Color(0xFFFFE66D), Color(0xFFFFF176))
+                                            4, 5 -> listOf(Color(0xFF4ECDC4), Color(0xFF44E5E7))
+                                            else -> listOf(Color.Gray, Color.LightGray)
+                                        }
+                                    ),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    when (record.efficiency) {
+                                        1, 2 -> "😔"
+                                        3 -> "😐"
+                                        4, 5 -> "🚀"
+                                        else -> "🤔"
+                                    },
+                                    style = MaterialTheme.typography.body2
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "${record.efficiency}",
+                                    style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                     
                     record.mood?.let { mood ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Surface(
-                            color = Color(0xFF6200EA).copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(8.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xFF667EEA).copy(alpha = 0.2f),
+                                            Color(0xFF764BA2).copy(alpha = 0.2f)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "😊 $mood",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.caption,
-                                color = Color(0xFF6200EA)
+                                text = mood,
+                                style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Medium),
+                                color = Color(0xFF667EEA)
                             )
                         }
                     }
@@ -285,44 +315,60 @@ fun DateListView(records: List<Record>, onDateClick: (String) -> Unit) {
         return
     }
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(groupedRecords.keys.sortedDescending()) { date ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onDateClick(date) },
-                elevation = 6.dp,
-                shape = RoundedCornerShape(12.dp)
+                elevation = 12.dp,
+                shape = RoundedCornerShape(24.dp),
+                backgroundColor = Color.White
             ) {
                 Row(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = date, 
-                            style = MaterialTheme.typography.h6.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF6200EA)
+                            "📅",
+                            style = MaterialTheme.typography.h6
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = date, 
+                                style = MaterialTheme.typography.h6.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF667EEA)
+                                )
                             )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${groupedRecords[date]?.size ?: 0} 条记录", 
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
-                        )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "${groupedRecords[date]?.size ?: 0} 条记录", 
+                                style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
                     }
-                    Surface(
-                        color = Color(0xFF6200EA).copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(25.dp)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
                     ) {
                         Text(
                             text = "${groupedRecords[date]?.size ?: 0}",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFF6200EA)
+                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                            color = Color.White
                         )
                     }
                 }

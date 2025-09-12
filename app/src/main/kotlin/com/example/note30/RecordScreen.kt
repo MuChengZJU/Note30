@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -80,54 +81,40 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                 }
             )
         },
-        backgroundColor = Color(0xFFF5F5F5)
+        backgroundColor = Color(0xFFF8F9FF)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
             if (isPaused) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFFFFF3E0),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = 2.dp
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Pause,
-                            contentDescription = "暂停",
-                            tint = Color(0xFFEF6C00)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            "提醒已暂停",
-                            style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFFEF6C00)
-                        )
-                    }
-                }
+                PauseBanner()
             }
 
-            // Text Input Card
+            // Text Input Card 📝
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = 4.dp,
-                shape = RoundedCornerShape(12.dp)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(24.dp),
+                backgroundColor = Color.White
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "记录内容",
-                        style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Medium),
-                        color = Color(0xFF6200EA)
-                    )
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "📝",
+                            style = MaterialTheme.typography.h6
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "记录内容",
+                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFF667EEA)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = text,
@@ -137,52 +124,60 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                             .fillMaxWidth()
                             .height(120.dp),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Color(0xFF6200EA),
-                            cursorColor = Color(0xFF6200EA),
-                            backgroundColor = Color(0xFFFAFAFA)
+                            focusedBorderColor = Color(0xFF667EEA),
+                            cursorColor = Color(0xFF667EEA),
+                            backgroundColor = Color(0xFFF8F9FF)
                         ),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         maxLines = 6
                     )
                 }
             }
 
-            // Efficiency Rating Card
+            // Efficiency Rating Card ⚡
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = 4.dp,
-                shape = RoundedCornerShape(12.dp)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(24.dp),
+                backgroundColor = Color.White
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            "效率评级",
-                            style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Medium),
-                            color = Color(0xFF6200EA)
-                        )
-                        Surface(
-                            color = when (efficiency) {
-                                1, 2 -> Color(0xFFFFEBEE)
-                                3 -> Color(0xFFFFF8E1)
-                                4, 5 -> Color(0xFFE8F5E8)
-                                else -> Color.Gray
-                            },
-                            shape = RoundedCornerShape(20.dp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "⚡",
+                                style = MaterialTheme.typography.h6
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "效率评级",
+                                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF667EEA)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    brush = Brush.radialGradient(
+                                        colors = when (efficiency) {
+                                            1, 2 -> listOf(Color(0xFFFF6B6B), Color(0xFFFF8E8E))
+                                            3 -> listOf(Color(0xFFFFE66D), Color(0xFFFFF176))
+                                            4, 5 -> listOf(Color(0xFF4ECDC4), Color(0xFF44E5E7))
+                                            else -> listOf(Color.Gray, Color.LightGray)
+                                        }
+                                    ),
+                                    shape = RoundedCornerShape(25.dp)
+                                )
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
                         ) {
                             Text(
                                 text = "$efficiency",
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                                color = when (efficiency) {
-                                    1, 2 -> Color(0xFFE53935)
-                                    3 -> Color(0xFFFF8F00)
-                                    4, 5 -> Color(0xFF43A047)
-                                    else -> Color.Black
-                                }
+                                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.ExtraBold),
+                                color = Color.White
                             )
                         }
                     }
@@ -221,9 +216,9 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                                 .weight(1f)
                                 .padding(horizontal = 16.dp),
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFF6200EA),
-                                activeTrackColor = Color(0xFF6200EA),
-                                inactiveTrackColor = Color(0xFF6200EA).copy(alpha = 0.24f)
+                                thumbColor = Color(0xFF667EEA),
+                                activeTrackColor = Color(0xFF667EEA),
+                                inactiveTrackColor = Color(0xFF667EEA).copy(alpha = 0.24f)
                             )
                         )
                         Text("5", style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Medium))
@@ -231,37 +226,50 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                 }
             }
 
-            // Mood Selection Card
+            // Mood Selection Card 🌈
             var expanded by remember { mutableStateOf(false) }
-            val moods = listOf("平静", "高效", "疲惫", "分心", "愉悦", "焦虑")
+            val moods = listOf("😌 平静", "🔥 高效", "😴 疲惫", "😵‍💫 分心", "😊 愉悦", "😰 焦虑")
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = 4.dp,
-                shape = RoundedCornerShape(12.dp)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(24.dp),
+                backgroundColor = Color.White
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "情绪标签",
-                        style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Medium),
-                        color = Color(0xFF6200EA)
-                    )
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "🌈",
+                            style = MaterialTheme.typography.h6
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "情绪标签",
+                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFF667EEA)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     Box {
                         OutlinedButton(
                             onClick = { expanded = true },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(20.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (mood != null) Color(0xFF6200EA) 
+                                contentColor = if (mood != null) Color(0xFF667EEA) 
                                              else MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                                backgroundColor = if (mood != null) Color(0xFF6200EA).copy(alpha = 0.08f)
+                                backgroundColor = if (mood != null) Color(0xFF667EEA).copy(alpha = 0.08f)
                                                  else Color.Transparent
-                            )
+                            ),
+                            border = if (mood != null) ButtonDefaults.outlinedBorder.copy(
+                                brush = Brush.horizontalGradient(
+                                    listOf(Color(0xFF667EEA), Color(0xFF764BA2))
+                                )
+                            ) else ButtonDefaults.outlinedBorder
                         ) {
                             Text(
-                                mood ?: "选择情绪", 
-                                modifier = Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.body1
+                                mood ?: "🙂 选择情绪", 
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Medium)
                             )
                         }
                         DropdownMenu(
@@ -293,7 +301,7 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Save Button
+            // Save Button 🚀
             Button(
                 onClick = {
                     viewModel.saveRecord(text, efficiency, mood)
@@ -304,26 +312,34 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(64.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF667EEA),
+                                Color(0xFF764BA2)
+                            )
+                        ),
+                        shape = RoundedCornerShape(32.dp)
+                    ),
+                shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(0xFF6200EA),
+                    backgroundColor = Color.Transparent,
                     contentColor = Color.White
                 ),
                 elevation = ButtonDefaults.elevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 8.dp
+                    defaultElevation = 12.dp,
+                    pressedElevation = 16.dp
                 )
             ) {
-                Icon(
-                    Icons.Default.Save,
-                    contentDescription = "保存",
-                    modifier = Modifier.size(20.dp)
+                Text(
+                    "🚀",
+                    style = MaterialTheme.typography.h6
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     "保存记录",
-                    style = MaterialTheme.typography.button.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
                 )
             }
         }
