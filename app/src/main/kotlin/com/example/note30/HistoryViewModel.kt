@@ -74,10 +74,8 @@ class HistoryViewModel(private val repository: RecordRepository) : ViewModel() {
             dailyRecords.sortedBy { it.timestamp }.forEach { record ->
                 val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
                 val startTime = timeFormatter.format(record.timestamp)
-                // Assuming 30 minute intervals as per PRD
-                val endTime = timeFormatter.format(record.timestamp.time + 30 * 60 * 1000)
                 
-                markdownBuilder.append("## $startTime - $endTime\n")
+                markdownBuilder.append("## $startTime\n")
                 markdownBuilder.append("- 效率: ${record.efficiency}\n")
                 record.mood?.let { mood ->
                     markdownBuilder.append("- 情绪: $mood\n")

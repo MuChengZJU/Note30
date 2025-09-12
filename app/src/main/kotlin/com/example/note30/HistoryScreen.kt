@@ -1,10 +1,14 @@
 package com.example.note30
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
@@ -104,25 +108,42 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("历史记录") },
+                title = { 
+                    Text(
+                        "历史记录", 
+                        style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
+                    ) 
+                },
+                backgroundColor = MaterialTheme.colors.primary,
+                contentColor = MaterialTheme.colors.onPrimary,
+                elevation = 8.dp,
                 actions = {
                     IconButton(onClick = {
                         viewMode = if (viewMode == "Timeline") "DateList" else "Timeline"
                     }) {
-                        Icon(Icons.Default.ViewList, contentDescription = "切换视图")
+                        Icon(
+                            Icons.Default.ViewList, 
+                            contentDescription = "切换视图",
+                            tint = MaterialTheme.colors.onPrimary
+                        )
                     }
                     IconButton(onClick = { showExportDialog = true }) {
-                        Icon(Icons.Default.Share, contentDescription = "导出")
+                        Icon(
+                            Icons.Default.Share, 
+                            contentDescription = "导出",
+                            tint = MaterialTheme.colors.onPrimary
+                        )
                     }
                 }
             )
-        }
+        },
+        backgroundColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Conditional view rendering
@@ -158,25 +179,70 @@ fun TimelineView(records: List<Record>) {
         }
         return
     }
-    LazyColumn {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(records) { record ->
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
+                modifier = Modifier.fillMaxWidth(),
+                elevation = 6.dp,
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(record.timestamp)} - " +
-                                "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(record.timestamp.time + 30 * 60 * 1000)}",
-                        style = MaterialTheme.typography.subtitle1
-                    )
-                    Text("效率: ${record.efficiency}", style = MaterialTheme.typography.body2)
-                    record.mood?.let { mood ->
-                        Text("情绪: $mood", style = MaterialTheme.typography.body2)
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(record.timestamp),
+                            style = MaterialTheme.typography.subtitle1.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6200EA)
+                            )
+                        )
+                        Surface(
+                            color = when (record.efficiency) {
+                                1, 2 -> Color(0xFFFFCDD2)
+                                3 -> Color(0xFFFFF9C4)
+                                4, 5 -> Color(0xFFC8E6C9)
+                                else -> Color.Gray
+                            },
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "效率: ${record.efficiency}",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.Medium),
+                                color = when (record.efficiency) {
+                                    1, 2 -> Color(0xFFD32F2F)
+                                    3 -> Color(0xFFF57C00)
+                                    4, 5 -> Color(0xFF388E3C)
+                                    else -> Color.Black
+                                }
+                            )
+                        }
                     }
-                    Text(record.content, style = MaterialTheme.typography.body1)
+                    
+                    record.mood?.let { mood ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Surface(
+                            color = Color(0xFF6200EA).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "😊 $mood",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.caption,
+                                color = Color(0xFF6200EA)
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        record.content,
+                        style = MaterialTheme.typography.body1,
+                        color = MaterialTheme.colors.onSurface
+                    )
                 }
             }
         }
@@ -212,21 +278,46 @@ fun DateListView(records: List<Record>, onDateClick: (String) -> Unit) {
         return
     }
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(groupedRecords.keys.sortedDescending()) { date ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onDateClick(date) },
-                elevation = 2.dp
+                elevation = 6.dp,
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = date, style = MaterialTheme.typography.h6)
-                    Text(text = "${groupedRecords[date]?.size ?: 0} 条记录", style = MaterialTheme.typography.body2)
+                    Column {
+                        Text(
+                            text = date, 
+                            style = MaterialTheme.typography.h6.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF6200EA)
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${groupedRecords[date]?.size ?: 0} 条记录", 
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                    Surface(
+                        color = Color(0xFF6200EA).copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(20.dp)
+                    ) {
+                        Text(
+                            text = "${groupedRecords[date]?.size ?: 0}",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFF6200EA)
+                        )
+                    }
                 }
             }
         }

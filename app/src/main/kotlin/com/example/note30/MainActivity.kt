@@ -8,6 +8,10 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.History
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -63,7 +67,11 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
     Scaffold(
         scaffoldState = scaffoldState,
         bottomBar = {
-            BottomNavigation {
+            BottomNavigation(
+                backgroundColor = MaterialTheme.colors.surface,
+                contentColor = MaterialTheme.colors.primary,
+                elevation = 8.dp
+            ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
                 items.forEach { dest ->
@@ -76,8 +84,18 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                                 restoreState = true
                             }
                         },
-                        icon = { },
-                        label = { Text(dest.label) }
+                        icon = { 
+                            Icon(
+                                imageVector = when (dest) {
+                                    Dest.Record -> Icons.Default.Create
+                                    Dest.History -> Icons.Default.History
+                                },
+                                contentDescription = dest.label
+                            )
+                        },
+                        label = { Text(dest.label) },
+                        selectedContentColor = MaterialTheme.colors.primary,
+                        unselectedContentColor = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }
