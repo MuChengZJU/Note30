@@ -1,16 +1,26 @@
 package com.example.note30
 
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HistoryViewModel(private val repository: RecordRepository) : ViewModel() {
+class HistoryViewModel(application: Application, private val repository: RecordRepository) : AndroidViewModel(application) {
+
+    private val sharedPreferences = application.getSharedPreferences("note30_prefs", Context.MODE_PRIVATE)
+
+    private val _isPaused = MutableStateFlow(sharedPreferences.getBoolean("isPaused", false))
+    val isPaused: StateFlow<Boolean> = _isPaused
 
     private val _exportedMarkdown = MutableSharedFlow<String>()
     val exportedMarkdown: SharedFlow<String> = _exportedMarkdown

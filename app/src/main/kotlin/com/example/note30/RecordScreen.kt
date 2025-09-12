@@ -17,6 +17,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.ui.window.Dialog
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -25,6 +30,30 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
     var efficiency by remember { mutableStateOf(3) } // Default to 3
     var mood by remember { mutableStateOf<String?>(null) }
     val isPaused by viewModel.isPaused.collectAsState()
+    var showSummaryDialog by remember { mutableStateOf<Long?>(null) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.showSummaryDialog.collect { startTime ->
+            showSummaryDialog = startTime
+        }
+    }
+
+    if (showSummaryDialog != null) {
+        SummaryDialog(
+            pauseStartTime = showSummaryDialog!!,
+            onDismiss = { showSummaryDialog = null },
+            onSave = { content, efficiency, mood ->
+                viewModel.saveRecord(
+                    content = content,
+                    efficiency = efficiency,
+                    mood = mood,
+                    timestamp = Date(showSummaryDialog!!)
+                )
+                viewModel.confirmResumeReminders()
+                showSummaryDialog = null
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -60,6 +89,33 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+
+            if (isPaused) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFFFFF3E0),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Pause,
+                            contentDescription = "暂停",
+                            tint = Color(0xFFEF6C00)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "提醒已暂停",
+                            style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFFEF6C00)
+                        )
+                    }
+                }
+            }
+
             // Text Input Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -269,6 +325,63 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                     "保存记录",
                     style = MaterialTheme.typography.button.copy(fontWeight = FontWeight.Bold)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun SummaryDialog(
+    pauseStartTime: Long,
+    onDismiss: () -> Unit,
+    onSave: (String, Int, String?) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+    var efficiency by remember { mutableStateOf(3) }
+    var mood by remember { mutableStateOf<String?>(null) }
+    val dateFormat = SimpleDateFormat("MM月dd日 HH:mm", Locale.getDefault())
+    val startTimeString = dateFormat.format(Date(pauseStartTime))
+    val endTimeString = dateFormat.format(Date())
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    "暂停时段总结",
+                    style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    "你从 $startTimeString 到 $endTimeString 暂停了提醒，请总结一下这段时间做了什么。",
+                    style = MaterialTheme.typography.body2
+                )
+                
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("总结内容") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                // Simplified Efficiency & Mood pickers can be added here if needed
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("跳过")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { onSave(text, efficiency, mood) }) {
+                        Text("保存总结")
+                    }
+                }
             }
         }
     }

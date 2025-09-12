@@ -30,10 +30,12 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.window.Dialog
+import androidx.compose.material.icons.filled.Pause
 
 @Composable
 fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = viewModel()) {
     val records by viewModel.getAllRecords().collectAsState(initial = emptyList())
+    val isPaused by viewModel.isPaused.collectAsState()
     var viewMode by remember { mutableStateOf("Timeline") } // "Timeline" or "DateList"
     var showExportDialog by remember { mutableStateOf(false) }
     var showDateRangePicker by remember { mutableStateOf(false) }
@@ -146,6 +148,11 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            if (isPaused) {
+                PauseBanner()
+            }
+
             // Conditional view rendering
             when (viewMode) {
                 "Timeline" -> TimelineView(records)

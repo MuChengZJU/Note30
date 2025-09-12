@@ -122,7 +122,9 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                 RecordScreen(navController = navController, viewModel = vm)
             }
             composable(Dest.History.route) {
-                val vm = remember { HistoryViewModel(repository) }
+                val vm: HistoryViewModel = viewModel(
+                    factory = HistoryViewModelFactory(activity.application, repository)
+                )
                 HistoryScreen(navController = navController, viewModel = vm)
             }
         }
@@ -136,6 +138,18 @@ class RecordViewModelFactory(
         if (modelClass.isAssignableFrom(RecordViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return RecordViewModel(application, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+class HistoryViewModelFactory(
+    private val application: Application,
+    private val repository: RecordRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return HistoryViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

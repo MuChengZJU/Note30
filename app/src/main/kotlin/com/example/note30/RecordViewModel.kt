@@ -25,11 +25,14 @@ class RecordViewModel(application: Application, private val repository: RecordRe
 
     private val _recordSaved = MutableSharedFlow<Unit>()
     val recordSaved: SharedFlow<Unit> = _recordSaved
+    
+    private val _showSummaryDialog = MutableSharedFlow<Long>()
+    val showSummaryDialog: SharedFlow<Long> = _showSummaryDialog
 
-    fun saveRecord(content: String, efficiency: Int, mood: String?) {
+    fun saveRecord(content: String, efficiency: Int, mood: String?, timestamp: Date = Date()) {
         viewModelScope.launch {
             val record = Record(
-                timestamp = Date(),
+                timestamp = timestamp,
                 efficiency = efficiency,
                 mood = mood,
                 content = content
@@ -41,14 +44,34 @@ class RecordViewModel(application: Application, private val repository: RecordRe
 
     fun pauseReminders() {
         workManager.cancelUniqueWork("note30_reminder_work")
-        sharedPreferences.edit().putBoolean("isPaused", true).apply()
+        with(sharedPreferences.edit()) {
+            putBoolean("isPaused", true)
+            putLong("pause_start_timestamp", System.currentTimeMillis())
+            apply()
+        }
         _isPaused.value = true
     }
 
     fun resumeReminders() {
-        sharedPreferences.edit().putBoolean("isPaused", false).apply()
+        viewModelScope.launch {
+            val pauseStartTime = sharedPreferences.getLong("pause_start_timestamp", 0L)
+            if (pauseStartTime > 0) {
+                _showSummaryDialog.emit(pauseStartTime)
+            } else {
+                // If for some reason startTime is not available, resume directly
+                confirmResumeReminders()
+            }
+        }
+    }
+    
+    fun confirmResumeReminders() {
+        with(sharedPreferences.edit()) {
+            putBoolean("isPaused", false)
+            remove("pause_start_timestamp")
+            apply()
+        }
         _isPaused.value = false
-        
+
         val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(30, TimeUnit.MINUTES).build()
         workManager.enqueueUniquePeriodicWork(
             "note30_reminder_work",
