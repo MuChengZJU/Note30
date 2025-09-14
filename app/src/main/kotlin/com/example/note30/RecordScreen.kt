@@ -23,6 +23,10 @@ import androidx.compose.ui.window.Dialog
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.clickable
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.lazy.LazyColumn
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -83,46 +87,49 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
         },
         backgroundColor = Color(0xFFF8F9FF)
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(top = 24.dp, bottom = 120.dp) // 顶部和底部留出额外空间
         ) {
-
             if (isPaused) {
-                PauseBanner()
+                item {
+                    PauseBanner()
+                }
             }
 
-            // Text Input Card 📝
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = 8.dp,
-                shape = RoundedCornerShape(24.dp),
-                backgroundColor = Color.White
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "📝",
-                            style = MaterialTheme.typography.h6
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "记录内容",
-                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFF667EEA)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = { text = it },
+            item {
+                // Text Input Card 📝
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    backgroundColor = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "📝",
+                                style = MaterialTheme.typography.h6
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "记录内容",
+                                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF667EEA)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
                         placeholder = { Text("在这里记录你刚才做了什么...") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(120.dp),
+                            .height(180.dp),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedBorderColor = Color(0xFF667EEA),
                             cursorColor = Color(0xFF667EEA),
@@ -133,214 +140,228 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
                     )
                 }
             }
+            }
 
-            // Efficiency Rating Card ⚡
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = 8.dp,
-                shape = RoundedCornerShape(24.dp),
-                backgroundColor = Color.White
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+            item {
+                // Efficiency Rating Card ⚡
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    backgroundColor = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "⚡",
+                                    style = MaterialTheme.typography.h6
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    "效率评级",
+                                    style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF667EEA)
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        brush = Brush.radialGradient(
+                                            colors = when (efficiency) {
+                                                1, 2 -> listOf(Color(0xFFFF6B6B), Color(0xFFFF8E8E))
+                                                3 -> listOf(Color(0xFFFFE66D), Color(0xFFFFF176))
+                                                4, 5 -> listOf(Color(0xFF4ECDC4), Color(0xFF44E5E7))
+                                                else -> listOf(Color.Gray, Color.LightGray)
+                                            }
+                                        ),
+                                        shape = RoundedCornerShape(25.dp)
+                                    )
+                                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                            ) {
+                                Text(
+                                    text = "$efficiency",
+                                    style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.ExtraBold),
+                                    color = Color.White
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val efficiencyDesc = when (efficiency) {
+                                1 -> "很低效"
+                                2 -> "低效"
+                                3 -> "一般"
+                                4 -> "高效"
+                                5 -> "非常高效"
+                                else -> "一般"
+                            }
+                            Text(
+                                text = efficiencyDesc,
+                                style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                (1..5).forEach { level ->
+                                    val selected = efficiency == level
+                                    val bg = if (selected) Brush.horizontalGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2))) else null
+                                    Surface(
+                                        shape = RoundedCornerShape(20.dp),
+                                        color = Color.Transparent,
+                                        border = if (selected) null else ButtonDefaults.outlinedBorder,
+                                        elevation = if (selected) 4.dp else 0.dp
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .height(36.dp)
+                                                .width(48.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .then(
+                                                    if (selected) {
+                                                        Modifier.background(
+                                                            brush = Brush.horizontalGradient(
+                                                                listOf(Color(0xFF667EEA), Color(0xFF764BA2))
+                                                            )
+                                                        )
+                                                    } else {
+                                                        Modifier.background(color = Color.Transparent)
+                                                    }
+                                                )
+                                                .clickable(
+                                                    role = Role.Button
+                                                ) { efficiency = level },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = level.toString(),
+                                                color = if (selected) Color.White else MaterialTheme.colors.onSurface,
+                                                style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                // Mood Selection Card 🌈
+        var expanded by remember { mutableStateOf(false) }
+                val moods = listOf("😌 平静", "🔥 高效", "😴 疲惫", "😵‍💫 分心", "😊 愉悦", "😰 焦虑")
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    backgroundColor = Color.White
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "⚡",
+                                "🌈",
                                 style = MaterialTheme.typography.h6
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "效率评级",
+                                "情绪标签",
                                 style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
                                 color = Color(0xFF667EEA)
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    brush = Brush.radialGradient(
-                                        colors = when (efficiency) {
-                                            1, 2 -> listOf(Color(0xFFFF6B6B), Color(0xFFFF8E8E))
-                                            3 -> listOf(Color(0xFFFFE66D), Color(0xFFFFF176))
-                                            4, 5 -> listOf(Color(0xFF4ECDC4), Color(0xFF44E5E7))
-                                            else -> listOf(Color.Gray, Color.LightGray)
-                                        }
-                                    ),
-                                    shape = RoundedCornerShape(25.dp)
-                                )
-                                .padding(horizontal = 20.dp, vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = "$efficiency",
-                                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.ExtraBold),
-                                color = Color.White
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // 效率级别描述
-                    val efficiencyDesc = when (efficiency) {
-                        1 -> "很低效"
-                        2 -> "低效"
-                        3 -> "一般"
-                        4 -> "高效"
-                        5 -> "非常高效"
-                        else -> "一般"
-                    }
-                    Text(
-                        text = efficiencyDesc,
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("1", style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Medium))
-                        Slider(
-                            value = efficiency.toFloat(),
-                            onValueChange = { newValue -> 
-                                efficiency = newValue.toInt().coerceIn(1, 5)
-                            },
-                            valueRange = 1f..5f,
-                            steps = 3,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 16.dp),
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color(0xFF667EEA),
-                                activeTrackColor = Color(0xFF667EEA),
-                                inactiveTrackColor = Color(0xFF667EEA).copy(alpha = 0.24f)
-                            )
-                        )
-                        Text("5", style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Medium))
-                    }
-                }
-            }
-
-            // Mood Selection Card 🌈
-            var expanded by remember { mutableStateOf(false) }
-            val moods = listOf("😌 平静", "🔥 高效", "😴 疲惫", "😵‍💫 分心", "😊 愉悦", "😰 焦虑")
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = 8.dp,
-                shape = RoundedCornerShape(24.dp),
-                backgroundColor = Color.White
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "🌈",
-                            style = MaterialTheme.typography.h6
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "情绪标签",
-                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFF667EEA)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box {
-                        OutlinedButton(
-                            onClick = { expanded = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (mood != null) Color(0xFF667EEA) 
-                                             else MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                                backgroundColor = if (mood != null) Color(0xFF667EEA).copy(alpha = 0.08f)
-                                                 else Color.Transparent
-                            ),
-                            border = if (mood != null) ButtonDefaults.outlinedBorder.copy(
-                                brush = Brush.horizontalGradient(
-                                    listOf(Color(0xFF667EEA), Color(0xFF764BA2))
-                                )
-                            ) else ButtonDefaults.outlinedBorder
-                        ) {
-                            Text(
-                                mood ?: "🙂 选择情绪", 
-                                modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Medium)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            moods.forEach { item ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        mood = item
-                                        expanded = false
-                                    }
-                                ) {
-                                    Text(text = item)
-                                }
-                            }
-                            DropdownMenuItem(
-                                onClick = {
-                                    mood = null
-                                    expanded = false
-                                }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box {
+                            OutlinedButton(
+                                onClick = { expanded = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = if (mood != null) Color(0xFF667EEA)
+                                            else MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                    backgroundColor = if (mood != null) Color(0xFF667EEA).copy(alpha = 0.08f)
+                                            else Color.Transparent
+                                ),
+                                border = if (mood != null) ButtonDefaults.outlinedBorder.copy(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(Color(0xFF667EEA), Color(0xFF764BA2))
+                                    )
+                                ) else ButtonDefaults.outlinedBorder
                             ) {
-                                Text(text = "无")
+                                Text(
+                                    mood ?: "🙂 选择情绪",
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Medium)
+                                )
+                            }
+                            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                moods.forEach { item ->
+                    DropdownMenuItem(
+                        onClick = {
+                            mood = item
+                            expanded = false
+                        }
+                    ) {
+                        Text(text = item)
+                    }
+                }
+                DropdownMenuItem(
+                    onClick = {
+                        mood = null
+                        expanded = false
+                    }
+                ) {
+                    Text(text = "无")
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Save Button 🚀
-            Button(
-                onClick = {
-                    viewModel.saveRecord(text, efficiency, mood)
-                    // Reset form after saving
-                    text = ""
-                    efficiency = 3
-                    mood = null
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF667EEA),
-                                Color(0xFF764BA2)
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                // Save Button 🚀 (自绘渐变+点击)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                listOf(Color(0xFF667EEA), Color(0xFF764BA2))
                             )
-                        ),
-                        shape = RoundedCornerShape(32.dp)
-                    ),
-                shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color.Transparent,
-                    contentColor = Color.White
-                ),
-                elevation = ButtonDefaults.elevation(
-                    defaultElevation = 12.dp,
-                    pressedElevation = 16.dp
-                )
-            ) {
-                Text(
-                    "🚀",
-                    style = MaterialTheme.typography.h6
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    "保存记录",
-                    style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
-                )
+                        )
+                        .clickable(
+                            role = Role.Button
+                        ) {
+                viewModel.saveRecord(text, efficiency, mood)
+                text = ""
+                efficiency = 3
+                mood = null
+            },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🚀", style = MaterialTheme.typography.h6, color = Color.White)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("保存记录", style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold), color = Color.White)
+                    }
+                }
             }
         }
     }

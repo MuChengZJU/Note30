@@ -9,7 +9,8 @@
   - *理由*: 现代声明式 UI 工具包，工作模式与 React 类似。能够以更少的代码、更高的效率构建精美、响应迅速的用户界面，完美契合对 UI 的高要求。
 
 - **架构模式**: **MVVM (Model-View-ViewModel)**
-  - *理由*: Google 官方推荐的架构模式。通过将界面 (View)、业务逻辑 (ViewModel) 和数据 (Model) 分离，保证代码结构清晰、可测试性强，易于未来扩展。
+  - *理由*: Google 官方
+  推荐的架构模式。通过将界面 (View)、业务逻辑 (ViewModel) 和数据 (Model) 分离，保证代码结构清晰、可测试性强，易于未来扩展。
 
 - **数据库**: **Room**
   - *理由*: 官方持久化库，简化了本地 SQLite 数据库的操作。提供编译时 SQL 校验，提高了数据操作的健壮性。
@@ -20,9 +21,13 @@
 ## 2. 核心模块实现思路
 
 ### 2.1 后台计时与提醒服务
-- 使用安卓的 `WorkManager` 或 `AlarmManager` 来实现稳定、省电的后台 30 分钟定时任务。
-- 定时任务触发后，通过系统 `NotificationManager` 发送标准通知。
-- 使用 `BroadcastReceiver` 监听用户对通知的点击或忽略操作。
+- 使用安卓的 `WorkManager` 来实现稳定、省电的后台 30 分钟定时任务；3 分钟后使用 `OneTimeWorkRequest` 进行二次提醒。
+- 发送通知遵循以下策略：
+  - Android 8.0+：创建高优先级通知渠道（IMPORTANCE_HIGH），启用振动与默认铃声，尝试 `setBypassDnd(true)`。
+  - 首次提醒采用 `NotificationCompat.CATEGORY_ALARM` + `setFullScreenIntent` 实现高可见性（需 `USE_FULL_SCREEN_INTENT` 权限）。
+  - 旧系统同时调用 `setDefaults(NotificationCompat.DEFAULT_ALL)` 与 `setVibrate(...)` 作为兼容补充。
+  - 所有通知统一归于单一渠道 `note30_reminder_channel`。
+  - 主动在 Android 13+ 请求 `POST_NOTIFICATIONS` 权限。
 
 ### 2.2 数据存储方案
 - **实体 (Entity)**: 创建一个 `Record` 数据类，包含 `id`, `timestamp`, `duration`, `efficiency`, `mood`, `content` 等字段。
@@ -45,3 +50,13 @@
 - **Room**: `androidx.room:room-runtime`, `androidx.room:room-ktx`
 - **Navigation**: `androidx.navigation:navigation-compose`
 - **Coroutines**: `org.jetbrains.kotlinx:kotlinx-coroutines-android`
+- **WorkManager**: `androidx.work:work-runtime-ktx`
+- **Accompanist Permissions**: `com.google.accompanist:accompanist-permissions`
+
+## 4. ColorOS / 厂商系统兼容策略
+- 在应用内调试页提供系统设置直达入口：
+  - 应用通知设置（`ACTION_APP_NOTIFICATION_SETTINGS`）
+  - 渠道设置（`ACTION_CHANNEL_NOTIFICATION_SETTINGS`）
+  - 忽略电池优化（`ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`）
+- 指引用户开启：允许通知、横幅、铃声、振动、自启动、不限制耗电、后台锁定。
+- 通知类别设为 `CATEGORY_ALARM`，并在渠道层面启用声音与振动。

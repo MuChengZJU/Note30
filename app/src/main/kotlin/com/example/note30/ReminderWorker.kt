@@ -6,12 +6,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import android.content.SharedPreferences
 
 class ReminderWorker(
     private val context: Context,
@@ -24,9 +26,44 @@ class ReminderWorker(
     }
 
     override suspend fun doWork(): Result {
-        val followUpTag = "follow_up_${UUID.randomUUID()}"
-        scheduleFollowUpWork(followUpTag)
-        sendNotification(followUpTag)
+        val followUpWorkTag = "followUp_${System.currentTimeMillis()}"
+
+        // Create an Intent to launch MainActivity
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("cancel_follow_up_work_tag", followUpWorkTag)
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        
+        val sharedPrefs = applicationContext.getSharedPreferences("Note30Prefs", Context.MODE_PRIVATE)
+        val reminderType = sharedPrefs.getString("reminder_type", "vibration")
+
+        // Build the notification
+        val builder = NotificationCompat.Builder(applicationContext, Note30Application.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with your app's icon
+            .setContentTitle("过了30分钟了")
+            .setContentText("记录一下刚才做了什么，感受如何？")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setContentIntent(pendingIntent)
+            .setFullScreenIntent(pendingIntent, true)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 400, 200, 400))
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+
+        // On Android 8.0 (API 26) and higher, sound and vibration are controlled by the notification channel.
+        // The .setDefaults call is primarily for older versions.
+        // By setting them on the channel, we ensure consistent behavior.
+        // We are removing the explicit call here to rely on the channel's configuration.
+
+        // Show the notification
+        with(NotificationManagerCompat.from(applicationContext)) {
+            notify(1, builder.build())
+        }
+
+        // Schedule a follow-up worker
+        scheduleFollowUpWork(followUpWorkTag)
         return Result.success()
     }
 

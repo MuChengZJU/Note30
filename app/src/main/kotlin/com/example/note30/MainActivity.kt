@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -26,6 +27,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import android.Manifest
+import android.os.Build
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,15 +62,24 @@ class MainActivity : ComponentActivity() {
 
 private enum class Dest(val route: String, val label: String) {
     Record("record", "记录"),
-    History("history", "历史")
+    History("history", "历史"),
+    Debug("debug", "调试")
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
     val navController = rememberNavController()
-    val items = listOf(Dest.Record, Dest.History)
+    val items = listOf(Dest.Record, Dest.History, Dest.Debug)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val permissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        LaunchedEffect(Unit) {
+            permissionState.launchPermissionRequest()
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -89,6 +106,7 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                                 imageVector = when (dest) {
                                     Dest.Record -> Icons.Default.Create
                                     Dest.History -> Icons.Default.History
+                                    Dest.Debug -> Icons.Default.Settings
                                 },
                                 contentDescription = dest.label
                             )
@@ -126,6 +144,9 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                     factory = HistoryViewModelFactory(activity.application, repository)
                 )
                 HistoryScreen(navController = navController, viewModel = vm)
+            }
+            composable(Dest.Debug.route) {
+                DebugScreen()
             }
         }
     }
