@@ -1,10 +1,11 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.inspirationmushroom.ai.AnalysisResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -79,43 +80,65 @@ class HistoryViewModel(application: Application, private val repository: RecordR
 
         groupedRecords.forEach { (date, dailyRecords) ->
             markdownBuilder.append("# $date\n\n")
-            
+
             // Sort records by timestamp for chronological order within a day
             dailyRecords.sortedBy { it.timestamp }.forEach { record ->
                 val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
                 val startTime = timeFormatter.format(record.timestamp)
-                
+
                 markdownBuilder.append("## $startTime\n")
-                markdownBuilder.append("- 效率: ${record.efficiency}\n")
-                record.mood?.let { mood ->
-                    markdownBuilder.append("- 情绪: $mood\n")
+                markdownBuilder.append("- 原文: ${record.content}\n")
+
+                // 解析并展示AI分析结果
+                record.aiAnalysis?.let { analysisJson ->
+                    val analysisResult = AnalysisResult.fromJson(analysisJson)
+                    analysisResult?.let { result ->
+                        markdownBuilder.append("- AI 分析:\n")
+                        markdownBuilder.append("  - 情绪: ${result.emotion}\n")
+                        markdownBuilder.append("  - 关键词: ${result.keywords.joinToString(", ")}\n")
+                        markdownBuilder.append("  - 摘要: ${result.summary}\n")
+                        markdownBuilder.append("  - 分类: ${result.category}\n")
+                    }
                 }
-                markdownBuilder.append("- 记录: ${record.content}\n\n")
+
+                // 显示分析状态（如果分析失败）
+                if (record.status == RecordStatus.ANALYSIS_FAILED) {
+                    markdownBuilder.append("- 分析状态: 分析失败\n")
+                }
+
+                markdownBuilder.append("\n")
             }
         }
 
         return markdownBuilder.toString()
     }
     
+    suspend fun retryAnalysis(record: Record) {
+        // 重置状态为待分析，然后重新触发分析
+        val resetRecord = record.copy(status = RecordStatus.PENDING_ANALYSIS, aiAnalysis = null)
+        repository.update(resetRecord)
+
+        // 重新触发分析
+        repository.saveRecordAndTriggerAnalysis(resetRecord)
+    }
+
     // For testing export functionality
     fun testExport(): String {
         val testRecords = listOf(
             Record(
-                id = 1,
                 timestamp = Date(),
-                efficiency = 4,
-                mood = "高效",
-                content = "完成了项目 A 的需求文档初稿。"
+                content = "完成了项目 A 的需求文档初稿，感觉很有成就感。",
+                aiAnalysis = """{"emotion":"积极","keywords":["项目A","文档","成就感"],"summary":"用户完成了工作任务并感到满意","category":"工作"}""",
+                status = RecordStatus.ANALYZED
             ),
             Record(
-                id = 2,
                 timestamp = Date(System.currentTimeMillis() + 30 * 60 * 1000),
-                efficiency = 3,
-                mood = null,
-                content = "参加了团队的每日站会，讨论了一些问题。"
+                content = "参加了团队的每日站会，讨论了一些问题，进行得很顺利。",
+                aiAnalysis = """{"emotion":"平静","keywords":["站会","团队","讨论"],"summary":"参加了例行的团队会议","category":"工作"}""",
+                status = RecordStatus.ANALYZED
             )
         )
-        
+
         return exportToMarkdown(testRecords)
     }
 }

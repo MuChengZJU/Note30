@@ -1,4 +1,4 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

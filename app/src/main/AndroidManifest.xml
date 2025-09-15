@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.note30">
+    package="com.example.inspirationmushroom">
 
     <!-- 权限声明 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     
     <application
-        android:name=".Note30Application"
+        android:name=".InspirationMushroomApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -17,14 +17,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Note30"
+        android:theme="@style/Theme.InspirationMushroom"
         tools:targetApi="31">
-        
+
         <!-- 主Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Note30">
+            android:theme="@style/Theme.InspirationMushroom">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,4 +1,4 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

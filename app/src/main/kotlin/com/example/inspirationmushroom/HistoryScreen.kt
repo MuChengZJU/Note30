@@ -1,4 +1,4 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,9 +17,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ViewList
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.inspirationmushroom.ai.AnalysisResult
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -42,6 +44,7 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
     var showExportDialog by remember { mutableStateOf(false) }
     var showDateRangePicker by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(viewModel) {
         viewModel.exportedMarkdown.collect { markdown ->
@@ -197,6 +200,7 @@ fun TimelineView(records: List<Record>) {
                 backgroundColor = Color.White
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
+                    // 时间和状态栏
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -216,70 +220,133 @@ fun TimelineView(records: List<Record>) {
                                 )
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    brush = Brush.radialGradient(
-                                        colors = when (record.efficiency) {
-                                            1, 2 -> listOf(Color(0xFFFF6B6B), Color(0xFFFF8E8E))
-                                            3 -> listOf(Color(0xFFFFE66D), Color(0xFFFFF176))
-                                            4, 5 -> listOf(Color(0xFF4ECDC4), Color(0xFF44E5E7))
-                                            else -> listOf(Color.Gray, Color.LightGray)
+
+                        // 分析状态指示器
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            when (record.status) {
+                                RecordStatus.PENDING_ANALYSIS -> {
+                                    Text(
+                                        "⏳ 分析中",
+                                        style = MaterialTheme.typography.caption,
+                                        color = Color(0xFFFF9800)
+                                    )
+                                }
+                                RecordStatus.ANALYZED -> {
+                                    Text(
+                                        "✅ 已分析",
+                                        style = MaterialTheme.typography.caption,
+                                        color = Color(0xFF4CAF50)
+                                    )
+                                }
+                                RecordStatus.ANALYSIS_FAILED -> {
+                                    Text(
+                                        "❌ 分析失败",
+                                        style = MaterialTheme.typography.caption,
+                                        color = Color(0xFFF44336)
+                                    )
+                                    IconButton(onClick = {
+                                        scope.launch {
+                                            viewModel.retryAnalysis(record)
                                         }
-                                    ),
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    when (record.efficiency) {
-                                        1, 2 -> "😔"
-                                        3 -> "😐"
-                                        4, 5 -> "🚀"
-                                        else -> "🤔"
-                                    },
-                                    style = MaterialTheme.typography.body2
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "${record.efficiency}",
-                                    style = MaterialTheme.typography.subtitle2.copy(fontWeight = FontWeight.Bold),
-                                    color = Color.White
-                                )
+                                    }) {
+                                        Icon(
+                                            Icons.Default.Refresh,
+                                            contentDescription = "重试分析",
+                                            tint = Color(0xFFF44336)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
-                    
-                    record.mood?.let { mood ->
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    brush = Brush.horizontalGradient(
-                                        colors = listOf(
-                                            Color(0xFF667EEA).copy(alpha = 0.2f),
-                                            Color(0xFF764BA2).copy(alpha = 0.2f)
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = mood,
-                                style = MaterialTheme.typography.body2.copy(fontWeight = FontWeight.Medium),
-                                color = Color(0xFF667EEA)
-                            )
-                        }
-                    }
-                    
+
+                    // 原文
                     Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "原文",
+                        style = MaterialTheme.typography.subtitle2.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colors.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         record.content,
                         style = MaterialTheme.typography.body1,
                         color = MaterialTheme.colors.onSurface
                     )
+
+                    // AI分析结果
+                    record.aiAnalysis?.let { analysisJson ->
+                        val analysisResult = AnalysisResult.fromJson(analysisJson)
+                        analysisResult?.let { result ->
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                backgroundColor = Color(0xFFF8F9FF),
+                                elevation = 2.dp,
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        "🤖 AI 分析",
+                                        style = MaterialTheme.typography.subtitle2.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colors.primary
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // 情绪
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("😊", style = MaterialTheme.typography.body2)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "情绪: ${result.emotion}",
+                                            style = MaterialTheme.typography.body2
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    // 关键词
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        Text("🏷️", style = MaterialTheme.typography.body2)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "关键词: ${result.keywords.joinToString(", ")}",
+                                            style = MaterialTheme.typography.body2
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    // 摘要
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        Text("📝", style = MaterialTheme.typography.body2)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "摘要: ${result.summary}",
+                                            style = MaterialTheme.typography.body2
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    // 分类
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("📂", style = MaterialTheme.typography.body2)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            "分类: ${result.category}",
+                                            style = MaterialTheme.typography.body2
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

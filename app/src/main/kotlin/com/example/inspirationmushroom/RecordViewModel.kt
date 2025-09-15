@@ -1,4 +1,4 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import android.app.Application
 import android.content.Context
@@ -29,15 +29,14 @@ class RecordViewModel(application: Application, private val repository: RecordRe
     private val _showSummaryDialog = MutableSharedFlow<Long>()
     val showSummaryDialog: SharedFlow<Long> = _showSummaryDialog
 
-    fun saveRecord(content: String, efficiency: Int, mood: String?, timestamp: Date = Date()) {
+    fun saveRecord(content: String, timestamp: Date = Date()) {
         viewModelScope.launch {
             val record = Record(
                 timestamp = timestamp,
-                efficiency = efficiency,
-                mood = mood,
-                content = content
+                content = content,
+                status = RecordStatus.PENDING_ANALYSIS
             )
-            repository.insert(record)
+            repository.saveRecordAndTriggerAnalysis(record)
             _recordSaved.emit(Unit)
         }
     }

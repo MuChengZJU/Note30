@@ -1,4 +1,4 @@
-package com.example.note30
+package com.example.inspirationmushroom
 
 import android.content.Intent
 import android.os.Bundle
@@ -63,14 +63,14 @@ class MainActivity : ComponentActivity() {
 private enum class Dest(val route: String, val label: String) {
     Record("record", "记录"),
     History("history", "历史"),
-    Debug("debug", "调试")
+    Settings("settings", "设置")
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
     val navController = rememberNavController()
-    val items = listOf(Dest.Record, Dest.History, Dest.Debug)
+    val items = listOf(Dest.Record, Dest.History, Dest.Settings)
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
@@ -101,12 +101,12 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                                 restoreState = true
                             }
                         },
-                        icon = { 
+                        icon = {
                             Icon(
                                 imageVector = when (dest) {
                                     Dest.Record -> Icons.Default.Create
                                     Dest.History -> Icons.Default.History
-                                    Dest.Debug -> Icons.Default.Settings
+                                    Dest.Settings -> Icons.Default.Settings
                                 },
                                 contentDescription = dest.label
                             )
@@ -145,8 +145,11 @@ fun Note30App(activity: ComponentActivity, repository: RecordRepository) {
                 )
                 HistoryScreen(navController = navController, viewModel = vm)
             }
-            composable(Dest.Debug.route) {
-                DebugScreen()
+            composable(Dest.Settings.route) {
+                val vm: SettingsViewModel = viewModel(
+                    factory = SettingsViewModelFactory(activity.application)
+                )
+                SettingsScreen(viewModel = vm)
             }
         }
     }
@@ -171,6 +174,18 @@ class HistoryViewModelFactory(
         if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return HistoryViewModel(application, repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+class SettingsViewModelFactory(
+    private val application: Application
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SettingsViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
