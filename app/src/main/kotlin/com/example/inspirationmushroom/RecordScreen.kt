@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
 @Composable
 fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
@@ -33,11 +34,11 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
         scaffoldState = scaffoldState,
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
-                        "记录", 
+                        "记录",
                         style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)
-                    ) 
+                    )
                 },
                 backgroundColor = MaterialTheme.colors.primary,
                 contentColor = MaterialTheme.colors.onPrimary,
@@ -64,22 +65,22 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
         backgroundColor = Color(0xFFF8F9FF)
     ) { paddingValues ->
         Column(
-        modifier = Modifier
-            .fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 主文本输入区域
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
+            Card(
+                modifier = Modifier.fillMaxWidth(),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(16.dp),
-                    backgroundColor = Color.White
-                ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
-                            Text(
+                backgroundColor = Color.White
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
                         text = "✍️ 记录你的灵感",
                         style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colors.primary,
@@ -109,9 +110,9 @@ fun RecordScreen(navController: NavController, viewModel: RecordViewModel) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                                Text(
+                    Text(
                         text = "💡 提示：写下任何让你有感触的事情，AI会帮你洞察其中的模式和意义。",
-                                style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.body2,
                         color = Color.Gray
                     )
                 }

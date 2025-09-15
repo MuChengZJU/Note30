@@ -16,7 +16,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val scaffoldState = rememberScaffoldState()
@@ -27,6 +29,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
     val selectedModel by viewModel.selectedModel.collectAsState()
     val availableModels by viewModel.availableModels.collectAsState()
     val isLoadingModels by viewModel.isLoadingModels.collectAsState()
+    val reminderInterval by viewModel.reminderIntervalMinutes.collectAsState()
+    val context = LocalContext.current // 获取 Context
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -68,6 +72,58 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 singleLine = true
             )
+
+            // 提醒周期设置
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = 4.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("提醒周期 (分钟)", style = MaterialTheme.typography.h6)
+
+                    var sliderValue by remember(reminderInterval) { mutableStateOf(reminderInterval.toFloat()) }
+
+                    Slider(
+                        value = sliderValue,
+                        onValueChange = { sliderValue = it },
+                        valueRange = 15f..120f,
+                        steps = 6
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("${sliderValue.toInt()} 分钟")
+                        Button(onClick = {
+                            viewModel.updateReminderIntervalMinutes(sliderValue.toInt())
+                        }) {
+                            Text("设为当前")
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                val ok = viewModel.saveConfiguration()
+                                if (ok) {
+                                    // 重新调度周期任务
+                                    ReminderManager(context).restartWithInterval(viewModel.reminderIntervalMinutes.value)
+                                    scaffoldState.snackbarHostState.showSnackbar("提醒周期已更新为 ${viewModel.reminderIntervalMinutes.value} 分钟")
+                                } else {
+                                    scaffoldState.snackbarHostState.showSnackbar("保存失败")
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("保存并应用")
+                    }
+                }
+            }
 
             // 模型选择区域
             Card(

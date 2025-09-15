@@ -34,13 +34,28 @@ import android.Manifest
 import android.os.Build
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import com.example.inspirationmushroom.data.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Build Repository from Room
         val db = AppDatabase.getDatabase(applicationContext)
-        val repository = RecordRepository(db.recordDao())
+        val settingsRepository = SettingsRepository(applicationContext)
+        val repository = RecordRepository(db.recordDao(), settingsRepository)
+
+        // Automatically retry pending analysis on startup
+        CoroutineScope(Dispatchers.IO).launch {
+            // Use .first() to get the list only once and prevent an infinite loop from .collect()
+            val pendingRecords = repository.getPendingAnalysisRecords().first()
+            for (record in pendingRecords) {
+                repository.retryAnalysis(record)
+            }
+        }
         
         cancelFollowUpWorkIfNeeded(intent)
 

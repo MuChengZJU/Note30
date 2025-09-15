@@ -35,6 +35,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.HourglassTop
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 
 @Composable
 fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = viewModel()) {
@@ -56,15 +61,6 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("Note30 Export", markdown)
                 clipboard.setPrimaryClip(clip)
-
-                // Share intent
-                val sendIntent: Intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, markdown)
-                    type = "text/plain"
-                }
-                val shareIntent = Intent.createChooser(sendIntent, "分享您的记录")
-                context.startActivity(shareIntent)
             }
         }
     }
@@ -160,7 +156,9 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
 
             // Conditional view rendering
             when (viewMode) {
-                "Timeline" -> TimelineView(records)
+                "Timeline" -> TimelineView(records) { rec ->
+                    scope.launch { viewModel.retryAnalysis(rec) }
+                }
                 "DateList" -> DateListView(records) { /* TODO: Navigate to single day view */ }
             }
         }
@@ -168,7 +166,7 @@ fun HistoryScreen(navController: NavController, viewModel: HistoryViewModel = vi
 }
 
 @Composable
-fun TimelineView(records: List<Record>) {
+fun TimelineView(records: List<Record>, onRetry: (Record) -> Unit) {
     if (records.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -191,7 +189,10 @@ fun TimelineView(records: List<Record>) {
         }
         return
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         items(records) { record ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -225,35 +226,36 @@ fun TimelineView(records: List<Record>) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             when (record.status) {
                                 RecordStatus.PENDING_ANALYSIS -> {
-                                    Text(
-                                        "⏳ 分析中",
-                                        style = MaterialTheme.typography.caption,
-                                        color = Color(0xFFFF9800)
+                                    Icon(
+                                        imageVector = Icons.Default.HourglassTop,
+                                        contentDescription = "分析中",
+                                        tint = Color(0xFFFFA000)
                                     )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("分析中", color = Color(0xFFFFA000))
+                                    IconButton(onClick = { onRetry(record) }) {
+                                        Icon(Icons.Default.Refresh, contentDescription = "重试分析", tint = MaterialTheme.colors.primary)
+                                    }
                                 }
                                 RecordStatus.ANALYZED -> {
-                                    Text(
-                                        "✅ 已分析",
-                                        style = MaterialTheme.typography.caption,
-                                        color = Color(0xFF4CAF50)
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "已分析",
+                                        tint = Color(0xFF388E3C)
                                     )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("已分析", color = Color(0xFF388E3C))
                                 }
                                 RecordStatus.ANALYSIS_FAILED -> {
-                                    Text(
-                                        "❌ 分析失败",
-                                        style = MaterialTheme.typography.caption,
-                                        color = Color(0xFFF44336)
+                                    Icon(
+                                        imageVector = Icons.Default.Error,
+                                        contentDescription = "分析失败",
+                                        tint = Color(0xFFD32F2F)
                                     )
-                                    IconButton(onClick = {
-                                        scope.launch {
-                                            viewModel.retryAnalysis(record)
-                                        }
-                                    }) {
-                                        Icon(
-                                            Icons.Default.Refresh,
-                                            contentDescription = "重试分析",
-                                            tint = Color(0xFFF44336)
-                                        )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("分析失败", color = Color(0xFFD32F2F))
+                                    IconButton(onClick = { onRetry(record) }) {
+                                        Icon(Icons.Default.Refresh, contentDescription = "重试分析", tint = Color(0xFFF44336))
                                     }
                                 }
                             }

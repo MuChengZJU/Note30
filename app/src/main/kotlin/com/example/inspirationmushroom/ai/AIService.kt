@@ -6,6 +6,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import java.util.concurrent.TimeUnit
 
 object AIService {
     private val json = Json {
@@ -13,14 +14,19 @@ object AIService {
         isLenient = true
     }
 
-    fun createApi(baseUrl: String): OpenAIApi {
-        val client = OkHttpClient.Builder()
+    fun createApi(apiUrl: String): OpenAIApi {
+        val sanitizedUrl = if (apiUrl.endsWith("/")) apiUrl else "$apiUrl/"
+
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client)
+            .baseUrl(sanitizedUrl)
+            .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 

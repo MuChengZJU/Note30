@@ -12,11 +12,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HistoryViewModel(application: Application, private val repository: RecordRepository) : AndroidViewModel(application) {
+class HistoryViewModel(
+    application: Application,
+    private val repository: RecordRepository
+) : AndroidViewModel(application) {
 
     private val sharedPreferences = application.getSharedPreferences("note30_prefs", Context.MODE_PRIVATE)
 
@@ -26,9 +31,13 @@ class HistoryViewModel(application: Application, private val repository: RecordR
     private val _exportedMarkdown = MutableSharedFlow<String>()
     val exportedMarkdown: SharedFlow<String> = _exportedMarkdown
 
-    fun getAllRecords(): Flow<List<Record>> {
-        return repository.getAllRecords()
-    }
+    fun getAllRecords() = repository.getAllRecords()
+
+    val records = repository.getAllRecords().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun getRecordsByDateRange(startTime: Long, endTime: Long): Flow<List<Record>> {
         return repository.getRecordsByDateRange(startTime, endTime)
@@ -112,14 +121,11 @@ class HistoryViewModel(application: Application, private val repository: RecordR
 
         return markdownBuilder.toString()
     }
-    
-    suspend fun retryAnalysis(record: Record) {
-        // 重置状态为待分析，然后重新触发分析
-        val resetRecord = record.copy(status = RecordStatus.PENDING_ANALYSIS, aiAnalysis = null)
-        repository.update(resetRecord)
 
-        // 重新触发分析
-        repository.saveRecordAndTriggerAnalysis(resetRecord)
+    fun retryAnalysis(record: Record) {
+        viewModelScope.launch {
+            repository.retryAnalysis(record)
+        }
     }
 
     // For testing export functionality

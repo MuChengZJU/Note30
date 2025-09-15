@@ -4,18 +4,25 @@ import com.example.inspirationmushroom.ai.AIService
 import com.example.inspirationmushroom.ai.ChatRequest
 import com.example.inspirationmushroom.ai.Message
 import com.example.inspirationmushroom.ai.Prompts
+import com.example.inspirationmushroom.data.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class RecordRepository(private val recordDao: RecordDao) {
+class RecordRepository(
+    private val recordDao: RecordDao,
+    private val settingsRepository: SettingsRepository
+) {
 
     fun getAllRecords() = recordDao.getAllRecords()
+    fun getPendingAnalysisRecords(): Flow<List<Record>> = recordDao.getPendingAnalysisRecords()
 
     fun getRecordsByDateRange(startTime: Long, endTime: Long) = recordDao.getRecordsByDateRange(startTime, endTime)
 
-    suspend fun insert(record: Record) {
-        recordDao.insert(record)
+    suspend fun insert(record: Record): Long {
+        return recordDao.insert(record)
     }
 
     suspend fun update(record: Record) {
@@ -26,50 +33,67 @@ class RecordRepository(private val recordDao: RecordDao) {
         recordDao.delete(record)
     }
 
-    suspend fun saveRecordAndTriggerAnalysis(record: Record) {
-        // 1. 立即保存到数据库
-        recordDao.insert(record)
+    private suspend fun triggerAnalysis(recordId: Long) {
+        val config = settingsRepository.aiConfigFlow.first()
+        val recordToAnalyze = recordDao.getRecordById(recordId)
 
-        // 2. 在后台触发AI分析
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // TODO: 从SettingsViewModel获取API配置
-                // 暂时使用硬编码的配置进行测试
-                val apiUrl = "https://api.openai.com"
-                val apiKey = "your-api-key-here"
-                val model = "gpt-3.5-turbo"
+        if (recordToAnalyze == null || recordToAnalyze.status != RecordStatus.PENDING_ANALYSIS) {
+            return // Record deleted or already analyzed/failed
+        }
 
-                val api = AIService.createApi(apiUrl)
-                val chatRequest = ChatRequest(
-                    model = model,
-                    messages = listOf(
-                        Message(role = "system", content = Prompts.SYSTEM_PROMPT),
-                        Message(role = "user", content = Prompts.createUserMessage(record.content))
-                    )
+        if (config.apiUrl.isBlank() || config.apiKey.isBlank() || config.model.isNullOrBlank()) {
+            val updatedRecord = recordToAnalyze.copy(status = RecordStatus.ANALYSIS_FAILED)
+            recordDao.update(updatedRecord)
+            return
+        }
+
+        try {
+            val api = AIService.createApi(config.apiUrl)
+            val chatRequest = ChatRequest(
+                model = config.model,
+                messages = listOf(
+                    Message(role = "system", content = Prompts.SYSTEM_PROMPT),
+                    Message(role = "user", content = Prompts.createUserMessage(recordToAnalyze.content))
                 )
+            )
 
-                val response = api.getChatCompletions("Bearer $apiKey", chatRequest)
+            val response = api.getChatCompletions("Bearer ${config.apiKey}", chatRequest)
 
-                if (response.isSuccessful) {
-                    val analysisJson = response.body()?.choices?.first()?.message?.content
-                    if (analysisJson != null) {
-                        // 更新数据库记录
-                        val updatedRecord = record.copy(
-                            aiAnalysis = analysisJson,
-                            status = RecordStatus.ANALYZED
-                        )
-                        recordDao.update(updatedRecord)
-                    }
+            if (response.isSuccessful) {
+                val analysisJson = response.body()?.choices?.first()?.message?.content
+                if (analysisJson != null) {
+                    val updatedRecord = recordToAnalyze.copy(
+                        aiAnalysis = analysisJson,
+                        status = RecordStatus.ANALYZED
+                    )
+                    recordDao.update(updatedRecord)
                 } else {
-                    // 分析失败
-                    val updatedRecord = record.copy(status = RecordStatus.ANALYSIS_FAILED)
+                     val updatedRecord = recordToAnalyze.copy(status = RecordStatus.ANALYSIS_FAILED)
                     recordDao.update(updatedRecord)
                 }
-            } catch (e: Exception) {
-                // 分析失败
-                val updatedRecord = record.copy(status = RecordStatus.ANALYSIS_FAILED)
+            } else {
+                val updatedRecord = recordToAnalyze.copy(status = RecordStatus.ANALYSIS_FAILED)
                 recordDao.update(updatedRecord)
             }
+        } catch (e: Exception) {
+            val updatedRecord = recordToAnalyze.copy(status = RecordStatus.ANALYSIS_FAILED)
+            recordDao.update(updatedRecord)
+        }
+    }
+
+    suspend fun saveRecordAndTriggerAnalysis(record: Record) {
+        val recordId = recordDao.insert(record)
+        CoroutineScope(Dispatchers.IO).launch {
+            triggerAnalysis(recordId)
+        }
+    }
+
+    suspend fun retryAnalysis(record: Record) {
+        // Only retry if it's not already analyzed
+        if (record.status != RecordStatus.ANALYZED) {
+            val recordToRetry = record.copy(status = RecordStatus.PENDING_ANALYSIS, aiAnalysis = null)
+            recordDao.update(recordToRetry)
+            triggerAnalysis(record.id)
         }
     }
 }

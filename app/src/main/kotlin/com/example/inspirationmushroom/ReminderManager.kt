@@ -7,17 +7,29 @@ import java.util.concurrent.TimeUnit
 class ReminderManager(private val context: Context) {
     
     fun startPeriodicReminders() {
+        scheduleWithInterval(30)
+    }
+
+    fun restartWithInterval(minutes: Int) {
+        // Cancel existing work and schedule with new interval
+        WorkManager.getInstance(context).cancelUniqueWork(ReminderWorker.WORK_NAME)
+        scheduleWithInterval(minutes)
+    }
+
+    private fun scheduleWithInterval(minutes: Int) {
+        val safeMinutes = minutes.coerceAtLeast(15) // WorkManager minimum is 15 minutes
+
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
             
-        val reminderWork = PeriodicWorkRequestBuilder<ReminderWorker>(30, TimeUnit.MINUTES)
+        val reminderWork = PeriodicWorkRequestBuilder<ReminderWorker>(safeMinutes.toLong(), TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
             
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             ReminderWorker.WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP, // Keep existing work if already scheduled
+            ExistingPeriodicWorkPolicy.REPLACE,
             reminderWork
         )
     }

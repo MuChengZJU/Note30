@@ -17,8 +17,11 @@ interface RecordDao {
     @Query("SELECT * FROM records WHERE status = 'PENDING_ANALYSIS' ORDER BY timestamp DESC")
     fun getPendingAnalysisRecords(): Flow<List<Record>>
 
+    @Query("SELECT * FROM records WHERE id = :id")
+    suspend fun getRecordById(id: Long): Record?
+
     @Insert
-    suspend fun insert(record: Record)
+    suspend fun insert(record: Record): Long
 
     @Update
     suspend fun update(record: Record)
