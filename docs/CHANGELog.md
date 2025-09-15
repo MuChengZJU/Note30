@@ -6,20 +6,18 @@
 
 ## [未发布]
 
+### 变更
+
+- **项目重塑为 "灵感菇"**:
+  - 核心功能转向由用户配置的 AI 大模型进行文本分析，取代了手动的效率和情绪打分。
+  - 数据库模型重构，引入 `ai_analysis` 字段以 JSON 格式存储分析结果。
+  - 简化主录入界面，聚焦于纯文本输入。
+  - 新增 AI 配置界面，支持自定义 OpenAI 兼容 API 端点、密钥和模型。
+
 ### 新增
 
 - 项目初始化。
 - 产品需求文档 (PRD) v1.0。
-
-### 变更
-
-- 提醒与通知强化（ColorOS 兼容）：
-  - 创建高优先级通知渠道：IMPORTANCE_HIGH，启用声音与振动，尝试 bypass DND。
-  - 首次提醒采用 CATEGORY_ALARM + FullScreenIntent（需 USE_FULL_SCREEN_INTENT 权限），提升提醒到达可见性。
-  - `ReminderWorker`/`FollowUpWorker` 明确设定振动模式与 `DEFAULT_ALL`（兼容旧系统），并统一遵循渠道配置。
-  - 在调试页新增系统设置直达入口：应用通知设置、渠道设置、忽略电池优化。
-  - 添加 Accompanist Permissions 并在 Android 13+ 主动请求 POST_NOTIFICATIONS 权限。
-  - 在 `DebugScreen` 展示 WorkManager 状态与倒计时，支持手动触发提醒。
 
 ### 修复
 
